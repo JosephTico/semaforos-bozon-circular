@@ -56,13 +56,14 @@ sem_t *sem_pro_id = sem_open(SEMAPHORE_PRODUCERS, O_CREAT, 0600, CBUFFER_SIZE);
         perror("mmap");
         return 30;
     }
-    
+    int i=0;
     while(true){
         sem_wait(sem_pro_id);
         sem_wait(sem_mem_id);
         addr->messages[addr->next_message_to_produce]=generate_message(pid);
         increase_next_message_to_produce(addr);
-        printf("producido\n");
+        printf("producido %d\n",i);
+        i++;
         sem_post(sem_mem_id);
         sem_post(sem_con_id); //+1 al semaforo para que consuman
         sleep(1);

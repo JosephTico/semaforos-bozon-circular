@@ -12,6 +12,8 @@
 
 int main(int argc, char *argv[])
 {
+    
+    
   int res;
   int fd;
   char data[DATA_SIZE];
@@ -36,14 +38,14 @@ sem_t *sem_pro_id = sem_open(SEMAPHORE_PRODUCERS, O_CREAT, 0600, CBUFFER_SIZE);
         perror("SEMAPHORE_MEMORY_SYNC  : [sem_open] Failed\n"); 
     }
   
-  
-  
-  
-  
-  
-  
-  pid = getpid();
+pid = getpid();
 
+
+
+    printf("NEW CONSUMER:\n PID %d\n",pid);
+
+  
+  
   // get shared memory file descriptor (NOT a file)
   fd = shm_open(STORAGE_ID, O_RDWR, S_IRUSR | S_IWUSR);
   if (fd == -1)
@@ -62,14 +64,13 @@ sem_t *sem_pro_id = sem_open(SEMAPHORE_PRODUCERS, O_CREAT, 0600, CBUFFER_SIZE);
   
   
   
-  
   while(true){
         sem_wait(sem_con_id);
         sem_wait(sem_mem_id);
         cbuffer_message message= consume_message(addr);
         printf("NUEVO MENSAJE:\n PID %d: Random: %d\n", message.producer_id,message.random );
 //         increase_next_message_to_consume(addr);
-        addr->next_message_to_consume=addr->next_message_to_consume+1;
+//         addr->next_message_to_consume=addr->next_message_to_consume+1;
         sem_post(sem_mem_id);
         sem_post(sem_pro_id); //+1 al semaforo para que consuman
         sleep(1);

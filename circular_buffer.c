@@ -42,6 +42,5 @@ cbuffer_message generate_message(pid_t pid){
 
 cbuffer_message consume_message(circular_buffer *buffer){
 //     buffer->messages[buffer->next_message_to_consume].consumed=true;
-
     return buffer->messages[buffer->next_message_to_consume];
 };
