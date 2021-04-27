@@ -4,17 +4,40 @@
 #include <unistd.h>
 #include <string.h>
 
-#define STORAGE_ID "SHM_TEST"
-#define STORAGE_SIZE 50 * 1024 * 1024
-#define DATA_SIZE 30
+#include <semaphore.h>
+#include "circular_buffer.h"
+
+
+
+
+
+
+
 
 int main(int argc, char *argv[])
 {
     int res;
     int fd;
-    char data[DATA_SIZE];
     pid_t pid;
-    void *addr;
+    circular_buffer *addr;
+    
+    
+    // inicializar semaforo
+  sem_t *sem_mem_id = sem_open(SEMAPHORE_MEMORY_SYNC, O_CREAT, 0600, 1);
+  if (sem_mem_id == SEM_FAILED){
+        perror("SEMAPHORE_MEMORY_SYNC  : [sem_open] Failed\n"); 
+    }
+    
+sem_t *sem_pro_id = sem_open(SEMAPHORE_PRODUCERS, O_CREAT, 0600, CBUFFER_SIZE);
+  if (sem_pro_id == SEM_FAILED){
+        perror("SEMAPHORE_MEMORY_SYNC  : [sem_open] Failed\n"); 
+    }
+  
+  sem_t *sem_con_id = sem_open(SEMAPHORE_CONSUMERS, O_CREAT, 0600, 0);
+  if (sem_con_id == SEM_FAILED){
+        perror("SEMAPHORE_MEMORY_SYNC  : [sem_open] Failed\n"); 
+    }
+    
 
     pid = getpid();
 
@@ -33,12 +56,19 @@ int main(int argc, char *argv[])
         perror("mmap");
         return 30;
     }
-
-    char *block2 = "HOLA mUndO DESDE BLOQUE2";
-    strcpy(addr + 50, block2);
-    printf("PID %d: Wrote to block2 \"%s\"\n", pid, block2);
-
-    printf("PID %d: Read from shared memory: \"%s\"\n", pid, (char *)addr);
-
+    
+    while(true){
+        sem_wait(sem_pro_id);
+        sem_wait(sem_mem_id);
+        addr->messages[addr->next_message_to_produce]=generate_message(pid);
+        increase_next_message_to_produce(addr);
+        printf("producido\n");
+        sem_post(sem_mem_id);
+        sem_post(sem_con_id); //+1 al semaforo para que consuman
+        sleep(1);
+    }
+    
+    
+    
     return 0;
 }
