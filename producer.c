@@ -7,37 +7,31 @@
 #include <semaphore.h>
 #include "circular_buffer.h"
 
-
-
-
-
-
-
-
 int main(int argc, char *argv[])
 {
     int res;
     int fd;
     pid_t pid;
     circular_buffer *addr;
-    
-    
+
     // inicializar semaforo
-  sem_t *sem_mem_id = sem_open(SEMAPHORE_MEMORY_SYNC, O_CREAT, 0600, 1);
-  if (sem_mem_id == SEM_FAILED){
-        perror("SEMAPHORE_MEMORY_SYNC  : [sem_open] Failed\n"); 
+    sem_t *sem_mem_id = sem_open(SEMAPHORE_MEMORY_SYNC, O_CREAT, 0600, 1);
+    if (sem_mem_id == SEM_FAILED)
+    {
+        perror("SEMAPHORE_MEMORY_SYNC  : [sem_open] Failed\n");
     }
-    
-sem_t *sem_pro_id = sem_open(SEMAPHORE_PRODUCERS, O_CREAT, 0600, CBUFFER_SIZE);
-  if (sem_pro_id == SEM_FAILED){
-        perror("SEMAPHORE_MEMORY_SYNC  : [sem_open] Failed\n"); 
+
+    sem_t *sem_pro_id = sem_open(SEMAPHORE_PRODUCERS, O_CREAT, 0600, CBUFFER_SIZE);
+    if (sem_pro_id == SEM_FAILED)
+    {
+        perror("SEMAPHORE_MEMORY_SYNC  : [sem_open] Failed\n");
     }
-  
-  sem_t *sem_con_id = sem_open(SEMAPHORE_CONSUMERS, O_CREAT, 0600, 0);
-  if (sem_con_id == SEM_FAILED){
-        perror("SEMAPHORE_MEMORY_SYNC  : [sem_open] Failed\n"); 
+
+    sem_t *sem_con_id = sem_open(SEMAPHORE_CONSUMERS, O_CREAT, 0600, 0);
+    if (sem_con_id == SEM_FAILED)
+    {
+        perror("SEMAPHORE_MEMORY_SYNC  : [sem_open] Failed\n");
     }
-    
 
     pid = getpid();
 
@@ -56,20 +50,19 @@ sem_t *sem_pro_id = sem_open(SEMAPHORE_PRODUCERS, O_CREAT, 0600, CBUFFER_SIZE);
         perror("mmap");
         return 30;
     }
-    int i=0;
-    while(true){
+    int i = 0;
+    while (true)
+    {
         sem_wait(sem_pro_id);
         sem_wait(sem_mem_id);
-        addr->messages[addr->next_message_to_produce]=generate_message(pid);
+        addr->messages[addr->next_message_to_produce] = generate_message(pid);
         increase_next_message_to_produce(addr);
-        printf("producido %d\n",i);
+        printf("producido %d\n", i);
         i++;
         sem_post(sem_mem_id);
         sem_post(sem_con_id); //+1 al semaforo para que consuman
         sleep(1);
     }
-    
-    
-    
+
     return 0;
 }
