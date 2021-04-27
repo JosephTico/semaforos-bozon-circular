@@ -3,17 +3,18 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <string.h>
-
 #include <semaphore.h>
 #include "circular_buffer.h"
+
 
 pid_t pid;
 bool running = true;
 
-void exit_by_finalizer()
-{
-    printf("Productor finalizado por finalizador:\n PID %d: \n", pid);
+void exit_by_finalizer(){
+  printf("Productor finalizado por finalizador:\n PID %d: \n", pid );
 }
+
+
 
 int main(int argc, char *argv[])
 {

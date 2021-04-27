@@ -48,5 +48,11 @@ void increase_next_message_to_produce(circular_buffer *buffer);
 void increase_consumers_killed_by_id(circular_buffer *buffer);
 cbuffer_message generate_message(pid_t pid, bool kill);
 cbuffer_message consume_message(circular_buffer *buffer);
+void print_buffer(circular_buffer *buffer);
+void print_message(cbuffer_message *message);
+
+
+
+
 
 #endif
