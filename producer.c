@@ -8,9 +8,8 @@
 #include "circular_buffer.h"
 
 
-pid_t pid;
 bool running = true;
-
+pid_t pid;
 
 
 void exit_by_finalizer(){

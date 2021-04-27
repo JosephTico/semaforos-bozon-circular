@@ -1,13 +1,5 @@
 #include "circular_buffer.h"
 
-
-
-
-
-
-
-
-
 void initialize_cbuffer( circular_buffer *buffer){
     buffer->consumers_killed_by_id=0;
     buffer->next_message_to_produce=0;
@@ -52,12 +44,48 @@ cbuffer_message generate_message(pid_t pid, bool kill){
       new_messsage.type=NORMAL;
     }
     return new_messsage;
-    
 };
 
 
 
+void print_buffer(circular_buffer *buffer){
+    printf("CURRENT BUFFER:\n " );
+    printf("kill_producers: %d\n ", buffer->kill_producers );
+    printf("total_messages: %d\n ", buffer->total_messages );
+    printf("total_producers: %d\n ", buffer->total_producers );
+    printf("total_consumers: %d\n ", buffer->total_consumers );
+    printf("current_producers: %d\n ", buffer->current_producers );
+    printf("current_consumers: %d\n ", buffer->current_consumers );
+    printf("consumers_killed_by_id: %d\n ", buffer->consumers_killed_by_id );
+    printf("\n" );
+    int i=0;
+    for(i=0;i<CBUFFER_SIZE;i++){
+      print_message(&buffer->messages[i]);
+    }
+};
 
+
+
+// typedef struct 
+// {
+//     int random;
+//     pid_t producer_id;
+//     int content;
+//     bool consumed;
+//     cbuffer_message_type type;
+// }cbuffer_message;
+
+
+void print_message(cbuffer_message *message){
+    printf("[prod_id:%d, random:%d, consumed:%d   ",message->producer_id,message->random,message->consumed);
+    if (message->type==KILL_CONSUMER){
+      printf(", type:KILL_CONSUMER" );
+    }
+    else{
+      printf(", type:NORMAL" );
+    }
+    printf("]\n");
+};
 
 
 void increase_consumers_killed_by_id(circular_buffer *buffer){
