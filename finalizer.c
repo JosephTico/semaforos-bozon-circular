@@ -112,16 +112,16 @@ int main(int argc, char *argv[])
   //   printf("PID %d: Read from shared memory: \"%d\"\n", pid, addr->messages[0].random);
 
   sem_close(sem_con_id);
-  sem_unlink(SEMAPHORE_CONSUMERS);
+  sem_unlink(sem_con_name);
 
   sem_close(sem_mem_id);
-  sem_unlink(SEMAPHORE_MEMORY_SYNC);
+  sem_unlink(sem_mem_name);
 
   sem_close(sem_pro_id);
-  sem_unlink(SEMAPHORE_PRODUCERS);
+  sem_unlink(sem_prod_name);
 
   // shm_open cleanup
-  fd = shm_unlink(STORAGE_ID);
+  fd = shm_unlink(buffer_name);
   if (fd == -1)
   {
     perror("unlink");
