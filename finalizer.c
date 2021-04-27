@@ -4,6 +4,7 @@
 #include <unistd.h>
 #include <string.h>
 #include <semaphore.h>
+#include <sys/stat.h>
 
 #include "circular_buffer.h"
 
@@ -64,7 +65,7 @@ int main(int argc, char *argv[])
     return 30;
   }
 
-  printf("STORAGE SIZE: %i\n", shared_memory_size);
+  printf("STORAGE SIZE: %li\n", shared_memory_size);
   printf("BUFFER SIZE: %i\n", addr->buffer_size);
 
   // Initialize semaphores

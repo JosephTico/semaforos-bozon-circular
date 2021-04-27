@@ -5,8 +5,7 @@
 #include <string.h>
 #include "circular_buffer.h"
 #include <semaphore.h>
-
-#define DATA_SIZE 30
+#include <sys/stat.h>
 
 bool running = true;
 pid_t pid;
@@ -25,7 +24,6 @@ int main(int argc, char *argv[])
 {
   int res;
   int fd;
-  char data[DATA_SIZE];
   circular_buffer *addr;
 
   // Get argv
@@ -82,7 +80,7 @@ int main(int argc, char *argv[])
     return 30;
   }
 
-  printf("STORAGE SIZE: %i\n", shared_memory_size);
+  printf("STORAGE SIZE: %li\n", shared_memory_size);
   printf("BUFFER SIZE: %i\n", addr->buffer_size);
 
   // Initialize semaphores

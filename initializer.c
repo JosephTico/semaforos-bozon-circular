@@ -4,9 +4,8 @@
 #include <unistd.h>
 #include <string.h>
 #include <semaphore.h>
+#include <sys/stat.h>
 #include "circular_buffer.h"
-
-#define DATA "Hello, World! From PID %d"
 
 int main(int argc, char *argv[])
 {
@@ -52,7 +51,7 @@ int main(int argc, char *argv[])
   size_t messages_size = sizeof(cbuffer_message) * buffer_size;
   size_t const STORAGE_SIZE = sizeof(initbuffer) + messages_size;
 
-  printf("STORAGE SIZE: %i\n", STORAGE_SIZE);
+  printf("STORAGE SIZE: %li\n", STORAGE_SIZE);
   printf("BUFFER SIZE: %i\n", initbuffer.buffer_size);
 
   // inicializar semaforo
@@ -75,7 +74,6 @@ int main(int argc, char *argv[])
   }
 
   pid = getpid();
-  //   sprintf(data, DATA, pid);
 
   // get shared memory file descriptor (NOT a file)
   fd = shm_open(buffer_name, O_RDWR | O_CREAT, S_IRUSR | S_IWUSR);
