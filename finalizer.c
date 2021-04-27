@@ -4,17 +4,16 @@
 #include <unistd.h>
 #include <string.h>
 
-#define STORAGE_ID "SHM_TEST"
-#define STORAGE_SIZE 50 * 1024 * 1024
-#define DATA_SIZE 30
+#include "circular_buffer.h"
+
+
 
 int main(int argc, char *argv[])
 {
   int res;
   int fd;
-  char data[DATA_SIZE];
   pid_t pid;
-  void *addr;
+  circular_buffer *addr;
 
   pid = getpid();
 
@@ -34,10 +33,11 @@ int main(int argc, char *argv[])
     return 30;
   }
 
-  // place data into memory
-  memcpy(data, addr, DATA_SIZE);
-
-  printf("PID %d: Read from shared memory: \"%s\"\n", pid, data);
+//   place data into memory
+//   memcpy(data, addr, DATA_SIZE);
+// addr->messages[0].random
+//   printf("PID %d: Read from shared memory: \"%s\"\n", pid, data);
+    printf("PID %d: Read from shared memory: \"%d\"\n", pid,addr->messages[0].random );
 
   // shm_open cleanup
   fd = shm_unlink(STORAGE_ID);

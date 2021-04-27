@@ -3,9 +3,10 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <string.h>
+#include "circular_buffer.h"
 
-#define STORAGE_ID "SHM_TEST"
-#define STORAGE_SIZE 50 * 1024 * 1024
+
+
 #define DATA_SIZE 30
 
 int main(int argc, char *argv[])
@@ -15,6 +16,7 @@ int main(int argc, char *argv[])
   char data[DATA_SIZE];
   pid_t pid;
   void *addr;
+  
 
   pid = getpid();
 

@@ -4,9 +4,9 @@
 #include <unistd.h>
 #include <string.h>
 
-#define STORAGE_ID "SHM_TEST"
-#define STORAGE_SIZE 50 * 1024 * 1024
-#define DATA_SIZE 30
+#include "circular_buffer.h"
+
+
 #define DATA "Hello, World! From PID %d"
 
 int main(int argc, char *argv[])
@@ -15,11 +15,12 @@ int main(int argc, char *argv[])
   int fd;
   int len;
   pid_t pid;
-  void *addr;
-  char data[DATA_SIZE];
+  circular_buffer *addr;
+  
+  
 
   pid = getpid();
-  sprintf(data, DATA, pid);
+//   sprintf(data, DATA, pid);
 
   // get shared memory file descriptor (NOT a file)
   fd = shm_open(STORAGE_ID, O_RDWR | O_CREAT, S_IRUSR | S_IWUSR);
@@ -45,12 +46,10 @@ int main(int argc, char *argv[])
     return 30;
   }
 
-  // place data into memory
-  len = strlen(data) + 1;
-  memcpy(addr, data, len);
-
   // TODO: Aqui se deben setear e inicializar todo, empezando a partir de addr
-
+    circular_buffer initbuffer;
+    memcpy(addr, &initbuffer, STORAGE_SIZE);
+    initialize_cbuffer(addr);
   // mmap cleanup
   res = munmap(addr, STORAGE_SIZE);
   if (res == -1)
