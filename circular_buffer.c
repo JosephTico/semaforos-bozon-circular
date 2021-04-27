@@ -38,12 +38,10 @@ cbuffer_message generate_message(pid_t pid, bool kill)
     new_messsage.random = rand() % 6;
     new_messsage.content = rand() % 500;
     new_messsage.producer_id = pid;
-    if (kill)
-    {
+    if (kill){
         new_messsage.type = KILL_CONSUMER;
     }
-    else
-    {
+    else{
         new_messsage.type = NORMAL;
     }
     return new_messsage;

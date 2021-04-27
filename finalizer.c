@@ -63,10 +63,29 @@ int main(int argc, char *argv[])
   sem_post(sem_mem_id);
   sem_post(sem_pro_id);
 
+  
+  
+  sem_wait(sem_mem_id);
+  int producers_alive = addr->current_consumers;
+  sem_post(sem_mem_id);
+
+
+  while (producers_alive > 0)
+  {
+    sem_wait(sem_mem_id);
+    producers_alive = addr->current_consumers;
+    sem_post(sem_mem_id);
+  }
+  
+  
+  
+  
   sem_wait(sem_mem_id);
   int consumers_alive = addr->current_consumers;
   sem_post(sem_mem_id);
-
+  sem_wait(sem_pro_id);
+  
+//   sem_wait(sem_pro_id);
   while (consumers_alive > 0)
   {
     sem_wait(sem_pro_id);
@@ -77,6 +96,7 @@ int main(int argc, char *argv[])
     consumers_alive = addr->current_consumers;
     sem_post(sem_mem_id);
   }
+  print_buffer(addr);
 
   //   place data into memory
   //   memcpy(data, addr, DATA_SIZE);
