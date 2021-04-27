@@ -7,13 +7,25 @@
 #include <semaphore.h>
 #include "circular_buffer.h"
 
+
+pid_t pid;
+bool running = true;
+
+
+
+void exit_by_finalizer(){
+  printf("Productor finalizado por finalizador:\n PID %d: \n", pid );
+
+}
+
+
+
+
 int main(int argc, char *argv[])
 {
     int res;
     int fd;
-    pid_t pid;
     circular_buffer *addr;
-
     // inicializar semaforo
     sem_t *sem_mem_id = sem_open(SEMAPHORE_MEMORY_SYNC, O_CREAT, 0600, 1);
     if (sem_mem_id == SEM_FAILED)
@@ -50,18 +62,40 @@ int main(int argc, char *argv[])
         perror("mmap");
         return 30;
     }
+    
+    sem_wait(sem_mem_id);
+    addr->current_producers++;
+    addr->total_producers++;
+    sem_post(sem_mem_id);
+
+    
+    
+    
+    
     int i = 0;
-    while (true)
+    while (running)
     {
+        sleep(1);
+        
         sem_wait(sem_pro_id);
         sem_wait(sem_mem_id);
-        addr->messages[addr->next_message_to_produce] = generate_message(pid);
-        increase_next_message_to_produce(addr);
-        printf("producido %d\n", i);
-        i++;
+        if(addr->kill_producers){
+          running=false;
+          addr->current_producers--;
+          exit_by_finalizer();
+          sem_post(sem_pro_id);
+          
+        }
+        else{
+          addr->messages[addr->next_message_to_produce] = generate_message(pid, false);
+          increase_next_message_to_produce(addr);
+          addr->total_messages++;
+          printf("producido %d\n", addr->total_messages);
+          i++;
+        }
+
         sem_post(sem_mem_id);
         sem_post(sem_con_id); //+1 al semaforo para que consuman
-        sleep(1);
     }
 
     return 0;

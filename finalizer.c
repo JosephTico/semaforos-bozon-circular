@@ -44,19 +44,32 @@ int main(int argc, char *argv[])
   }
 
   // map shared memory to process address space
-  addr = mmap(NULL, STORAGE_SIZE, PROT_READ, MAP_SHARED, fd, 0);
+  addr = mmap(NULL, STORAGE_SIZE, PROT_WRITE, MAP_SHARED, fd, 0);
   if (addr == MAP_FAILED)
   {
     perror("mmap");
     return 30;
   }
 
+  
+  
+  sem_wait(sem_mem_id);
+  addr->kill_producers=true;
+  sem_post(sem_mem_id);
+  sem_post(sem_pro_id);
+  
+  
+  
+  
   //   place data into memory
   //   memcpy(data, addr, DATA_SIZE);
   // addr->messages[0].random
   //   printf("PID %d: Read from shared memory: \"%s\"\n", pid, data);
-  printf("PID %d: Read from shared memory: \"%d\"\n", pid, addr->messages[0].random);
+//   printf("PID %d: Read from shared memory: \"%d\"\n", pid, addr->messages[0].random);
 
+  
+  
+  
   sem_close(sem_con_id);
   sem_unlink(SEMAPHORE_CONSUMERS);
 
