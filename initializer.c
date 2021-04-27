@@ -10,11 +10,22 @@
 
 int main(int argc, char *argv[])
 {
+
   int res;
   int fd;
   int len;
   pid_t pid;
   circular_buffer *addr;
+
+  // Initialize the circular buffer
+  int buffer_size = 50;
+  circular_buffer initbuffer;
+  initbuffer.buffer_size = buffer_size;
+  size_t messages_size = sizeof(cbuffer_message) * buffer_size;
+  size_t const STORAGE_SIZE = sizeof(initbuffer) + messages_size;
+
+  printf("STORAGE SIZE: %i\n", STORAGE_SIZE);
+  printf("BUFFER SIZE: %i\n", initbuffer.buffer_size);
 
   // inicializar semaforo
   sem_t *sem_mem_id = sem_open(SEMAPHORE_MEMORY_SYNC, O_CREAT, 0600, 1);
@@ -23,7 +34,7 @@ int main(int argc, char *argv[])
     perror("SEMAPHORE_MEMORY_SYNC  : [sem_open] Failed\n");
   }
 
-  sem_t *sem_pro_id = sem_open(SEMAPHORE_PRODUCERS, O_CREAT, 0600, CBUFFER_SIZE);
+  sem_t *sem_pro_id = sem_open(SEMAPHORE_PRODUCERS, O_CREAT, 0600, buffer_size);
   if (sem_pro_id == SEM_FAILED)
   {
     perror("SEMAPHORE_MEMORY_SYNC  : [sem_open] Failed\n");
@@ -64,7 +75,7 @@ int main(int argc, char *argv[])
 
   // TODO: Aqui se deben setear e inicializar todo, empezando a partir de addr
   sem_wait(sem_mem_id);
-  circular_buffer initbuffer;
+
   memcpy(addr, &initbuffer, STORAGE_SIZE);
   initialize_cbuffer(addr);
   sem_post(sem_mem_id);

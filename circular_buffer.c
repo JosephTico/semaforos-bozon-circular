@@ -1,4 +1,5 @@
 #include "circular_buffer.h"
+<<<<<<< HEAD
 
 void initialize_cbuffer( circular_buffer *buffer){
     buffer->consumers_killed_by_id=0;
@@ -10,38 +11,57 @@ void initialize_cbuffer( circular_buffer *buffer){
     buffer->total_producers=0;
     buffer->total_messages=0;
     buffer->kill_producers=false;
+=======
+void initialize_cbuffer(circular_buffer *buffer)
+{
+    buffer->consumers_killed_by_id = 0;
+    buffer->next_message_to_produce = 0;
+    buffer->next_message_to_consume = 0;
+    buffer->current_consumers = 0;
+    buffer->current_producers = 0;
+    buffer->total_consumers = 0;
+    buffer->total_producers = 0;
+    buffer->total_messages = 0;
+    buffer->kill_producers = false;
+>>>>>>> a471b432fa74413240f48efb74a5afe797e1e904
     int i;
-    for(i=0;i<CBUFFER_SIZE;i++){
-        buffer->messages[i].consumed=true;
-        buffer->messages[i].random=i;
-
+    for (i = 0; i < buffer->buffer_size; i++)
+    {
+        buffer->messages[i].consumed = true;
+        buffer->messages[i].random = i;
     }
 };
-void increase_next_message_to_consume(circular_buffer *buffer){
-    buffer->next_message_to_consume=buffer->next_message_to_consume+1;
-    if (buffer->next_message_to_consume == CBUFFER_SIZE){
-        buffer->next_message_to_consume=0;
+void increase_next_message_to_consume(circular_buffer *buffer)
+{
+    buffer->next_message_to_consume = buffer->next_message_to_consume + 1;
+    if (buffer->next_message_to_consume == buffer->buffer_size)
+    {
+        buffer->next_message_to_consume = 0;
     }
 };
 
-
-void increase_next_message_to_produce(circular_buffer *buffer){
-    buffer->next_message_to_produce = buffer->next_message_to_produce+1;
-    if (buffer->next_message_to_produce == CBUFFER_SIZE){
+void increase_next_message_to_produce(circular_buffer *buffer)
+{
+    buffer->next_message_to_produce = buffer->next_message_to_produce + 1;
+    if (buffer->next_message_to_produce == buffer->buffer_size)
+    {
         buffer->next_message_to_produce = 0;
     }
 };
-cbuffer_message generate_message(pid_t pid, bool kill){
+cbuffer_message generate_message(pid_t pid, bool kill)
+{
     cbuffer_message new_messsage;
-    new_messsage.consumed=false;
-    new_messsage.random=rand() % 6;
-    new_messsage.content=rand() % 500;
-    new_messsage.producer_id=pid;
-    if(kill){
-      new_messsage.type=KILL_CONSUMER;
+    new_messsage.consumed = false;
+    new_messsage.random = rand() % 6;
+    new_messsage.content = rand() % 500;
+    new_messsage.producer_id = pid;
+    if (kill)
+    {
+        new_messsage.type = KILL_CONSUMER;
     }
-    else{
-      new_messsage.type=NORMAL;
+    else
+    {
+        new_messsage.type = NORMAL;
     }
     return new_messsage;
 };
@@ -59,21 +79,10 @@ void print_buffer(circular_buffer *buffer){
     printf("consumers_killed_by_id: %d\n ", buffer->consumers_killed_by_id );
     printf("\n" );
     int i=0;
-    for(i=0;i<CBUFFER_SIZE;i++){
+    for(i=0;i<buffer->buffer_size;i++){
       print_message(&buffer->messages[i]);
     }
 };
-
-
-
-// typedef struct 
-// {
-//     int random;
-//     pid_t producer_id;
-//     int content;
-//     bool consumed;
-//     cbuffer_message_type type;
-// }cbuffer_message;
 
 
 void print_message(cbuffer_message *message){
@@ -88,13 +97,15 @@ void print_message(cbuffer_message *message){
 };
 
 
-void increase_consumers_killed_by_id(circular_buffer *buffer){
-    buffer->consumers_killed_by_id = buffer->consumers_killed_by_id+1;
+
+void increase_consumers_killed_by_id(circular_buffer *buffer)
+{
+    buffer->consumers_killed_by_id = buffer->consumers_killed_by_id + 1;
 }
 
-
-cbuffer_message consume_message(circular_buffer *buffer){
-    buffer->messages[buffer->next_message_to_consume].consumed=true;
+cbuffer_message consume_message(circular_buffer *buffer)
+{
+    buffer->messages[buffer->next_message_to_consume].consumed = true;
     increase_next_message_to_consume(buffer);
     return buffer->messages[buffer->next_message_to_consume];
 };

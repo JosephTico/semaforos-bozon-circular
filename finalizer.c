@@ -14,25 +14,6 @@ int main(int argc, char *argv[])
   pid_t pid;
   circular_buffer *addr;
 
-  // inicializar semaforo
-  sem_t *sem_mem_id = sem_open(SEMAPHORE_MEMORY_SYNC, O_CREAT, 0600, 1);
-  if (sem_mem_id == SEM_FAILED)
-  {
-    perror("SEMAPHORE_MEMORY_SYNC  : [sem_open] Failed\n");
-  }
-
-  sem_t *sem_pro_id = sem_open(SEMAPHORE_PRODUCERS, O_CREAT, 0600, CBUFFER_SIZE);
-  if (sem_pro_id == SEM_FAILED)
-  {
-    perror("SEMAPHORE_MEMORY_SYNC  : [sem_open] Failed\n");
-  }
-
-  sem_t *sem_con_id = sem_open(SEMAPHORE_CONSUMERS, O_CREAT, 0600, 0);
-  if (sem_con_id == SEM_FAILED)
-  {
-    perror("SEMAPHORE_MEMORY_SYNC  : [sem_open] Failed\n");
-  }
-
   pid = getpid();
 
   // get shared memory file descriptor (NOT a file)
@@ -43,34 +24,57 @@ int main(int argc, char *argv[])
     return 10;
   }
 
+  // Get shared memory size from file descriptor
+  struct stat finfo;
+  fstat(fd, &finfo);
+  off_t shared_memory_size = finfo.st_size;
+
   // map shared memory to process address space
-  addr = mmap(NULL, STORAGE_SIZE, PROT_WRITE, MAP_SHARED, fd, 0);
+  addr = mmap(NULL, shared_memory_size, PROT_WRITE, MAP_SHARED, fd, 0);
   if (addr == MAP_FAILED)
   {
     perror("mmap");
     return 30;
   }
 
-  
-  
+  printf("STORAGE SIZE: %i\n", shared_memory_size);
+  printf("BUFFER SIZE: %i\n", addr->buffer_size);
+
+  // Initialize semaphores
+  sem_t *sem_mem_id = sem_open(SEMAPHORE_MEMORY_SYNC, O_CREAT, 0600, 1);
+  if (sem_mem_id == SEM_FAILED)
+  {
+    perror("SEMAPHORE_MEMORY_SYNC  : [sem_open] Failed\n");
+  }
+
+  sem_t *sem_pro_id = sem_open(SEMAPHORE_PRODUCERS, O_CREAT, 0600, addr->buffer_size);
+  if (sem_pro_id == SEM_FAILED)
+  {
+    perror("SEMAPHORE_MEMORY_SYNC  : [sem_open] Failed\n");
+  }
+
+  sem_t *sem_con_id = sem_open(SEMAPHORE_CONSUMERS, O_CREAT, 0600, 0);
+  if (sem_con_id == SEM_FAILED)
+  {
+    perror("SEMAPHORE_MEMORY_SYNC  : [sem_open] Failed\n");
+  }
   sem_wait(sem_mem_id);
-  addr->kill_producers=true;
+  addr->kill_producers = true;
   sem_post(sem_mem_id);
   sem_post(sem_pro_id);
-  
-  
-  
+
   sem_wait(sem_mem_id);
-  int consumers_alive=addr->current_consumers;
+  int consumers_alive = addr->current_consumers;
   sem_post(sem_mem_id);
-  
-  while(consumers_alive>0){
+
+  while (consumers_alive > 0)
+  {
     sem_wait(sem_pro_id);
     sem_wait(sem_mem_id);
     addr->messages[addr->next_message_to_produce] = generate_message(pid, true);
     increase_next_message_to_produce(addr);
     addr->total_messages++;
-    consumers_alive=addr->current_consumers;
+    consumers_alive = addr->current_consumers;
     sem_post(sem_mem_id);
   }
 
@@ -78,11 +82,8 @@ int main(int argc, char *argv[])
   //   memcpy(data, addr, DATA_SIZE);
   // addr->messages[0].random
   //   printf("PID %d: Read from shared memory: \"%s\"\n", pid, data);
-//   printf("PID %d: Read from shared memory: \"%d\"\n", pid, addr->messages[0].random);
+  //   printf("PID %d: Read from shared memory: \"%d\"\n", pid, addr->messages[0].random);
 
-  
-  
-  
   sem_close(sem_con_id);
   sem_unlink(SEMAPHORE_CONSUMERS);
 
