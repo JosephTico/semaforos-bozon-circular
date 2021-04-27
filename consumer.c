@@ -8,13 +8,24 @@
 
 #define DATA_SIZE 30
 
+bool running = true;
+pid_t pid;
+
+void exit_by_id()
+{
+  printf("Consumidor finalizado por id:\n PID %d: \n", pid);
+}
+
+void exit_by_finalizer()
+{
+  printf("Consumidor finalizado por finalizador:\n PID %d: \n", pid);
+}
+
 int main(int argc, char *argv[])
 {
-
   int res;
   int fd;
   char data[DATA_SIZE];
-  pid_t pid;
   circular_buffer *addr;
 
   pid = getpid();
@@ -64,16 +75,37 @@ int main(int argc, char *argv[])
     perror("SEMAPHORE_MEMORY_SYNC  : [sem_open] Failed\n");
   }
 
-  while (true)
+  sem_wait(sem_mem_id);
+  addr->current_consumers++;
+  addr->total_consumers++;
+  sem_post(sem_mem_id);
+
+  while (running)
   {
     sem_wait(sem_con_id);
     sem_wait(sem_mem_id);
     cbuffer_message message = consume_message(addr);
     printf("NUEVO MENSAJE:\n PID %d: Random: %d\n", message.producer_id, message.random);
-    increase_next_message_to_consume(addr);
     sem_post(sem_mem_id);
     sem_post(sem_pro_id); //+1 al semaforo para que consuman
-    sleep(1);
+
+    if (message.type == KILL_CONSUMER)
+    {
+      running = false;
+      addr->current_consumers--;
+      exit_by_finalizer();
+    }
+    else if (message.random == pid % 6)
+    {
+      running = false;
+      addr->current_consumers--;
+      addr->consumers_killed_by_id++;
+      exit_by_id();
+    }
+    else
+    {
+      sleep(1);
+    }
   }
   /*
   printf("PID %d: Read from shared memory: \"%s\"\n", pid, (char *)addr);
