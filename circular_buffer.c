@@ -1,5 +1,5 @@
 #include "circular_buffer.h"
-<<<<<<< HEAD
+
 
 void initialize_cbuffer( circular_buffer *buffer){
     buffer->consumers_killed_by_id=0;
@@ -11,26 +11,9 @@ void initialize_cbuffer( circular_buffer *buffer){
     buffer->total_producers=0;
     buffer->total_messages=0;
     buffer->kill_producers=false;
-=======
-void initialize_cbuffer(circular_buffer *buffer)
-{
-    buffer->consumers_killed_by_id = 0;
-    buffer->next_message_to_produce = 0;
-    buffer->next_message_to_consume = 0;
-    buffer->current_consumers = 0;
-    buffer->current_producers = 0;
-    buffer->total_consumers = 0;
-    buffer->total_producers = 0;
-    buffer->total_messages = 0;
-    buffer->kill_producers = false;
->>>>>>> a471b432fa74413240f48efb74a5afe797e1e904
-    int i;
-    for (i = 0; i < buffer->buffer_size; i++)
-    {
-        buffer->messages[i].consumed = true;
-        buffer->messages[i].random = i;
-    }
 };
+
+
 void increase_next_message_to_consume(circular_buffer *buffer)
 {
     buffer->next_message_to_consume = buffer->next_message_to_consume + 1;
