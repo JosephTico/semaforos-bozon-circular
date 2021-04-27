@@ -14,14 +14,37 @@ int main(int argc, char *argv[])
     pid_t pid;
     circular_buffer *addr;
 
-    // inicializar semaforo
+    pid = getpid();
+
+    // get shared memory file descriptor (NOT a file)
+    fd = shm_open(STORAGE_ID, O_RDWR, S_IRUSR | S_IWUSR);
+    if (fd == -1)
+    {
+        perror("open");
+        return 10;
+    }
+
+    // Get shared memory size from file descriptor
+    struct stat finfo;
+    fstat(fd, &finfo);
+    off_t shared_memory_size = finfo.st_size;
+
+    // map shared memory to process address space
+    addr = mmap(NULL, shared_memory_size, PROT_WRITE, MAP_SHARED, fd, 0);
+    if (addr == MAP_FAILED)
+    {
+        perror("mmap");
+        return 30;
+    }
+
+    // Initialize semaphores
     sem_t *sem_mem_id = sem_open(SEMAPHORE_MEMORY_SYNC, O_CREAT, 0600, 1);
     if (sem_mem_id == SEM_FAILED)
     {
         perror("SEMAPHORE_MEMORY_SYNC  : [sem_open] Failed\n");
     }
 
-    sem_t *sem_pro_id = sem_open(SEMAPHORE_PRODUCERS, O_CREAT, 0600, CBUFFER_SIZE);
+    sem_t *sem_pro_id = sem_open(SEMAPHORE_PRODUCERS, O_CREAT, 0600, addr->buffer_size);
     if (sem_pro_id == SEM_FAILED)
     {
         perror("SEMAPHORE_MEMORY_SYNC  : [sem_open] Failed\n");
@@ -33,23 +56,9 @@ int main(int argc, char *argv[])
         perror("SEMAPHORE_MEMORY_SYNC  : [sem_open] Failed\n");
     }
 
-    pid = getpid();
+    printf("STORAGE SIZE: %i\n", shared_memory_size);
+    printf("BUFFER SIZE: %i\n", addr->buffer_size);
 
-    // get shared memory file descriptor (NOT a file)
-    fd = shm_open(STORAGE_ID, O_RDWR, S_IRUSR | S_IWUSR);
-    if (fd == -1)
-    {
-        perror("open");
-        return 10;
-    }
-
-    // map shared memory to process address space
-    addr = mmap(NULL, STORAGE_SIZE, PROT_WRITE, MAP_SHARED, fd, 0);
-    if (addr == MAP_FAILED)
-    {
-        perror("mmap");
-        return 30;
-    }
     int i = 0;
     while (true)
     {
