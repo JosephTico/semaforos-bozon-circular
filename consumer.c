@@ -55,7 +55,7 @@ pid = getpid();
   }
 
   // map shared memory to process address space
-  addr = mmap(NULL, STORAGE_SIZE, PROT_READ, MAP_SHARED, fd, 0);
+  addr = mmap(NULL, STORAGE_SIZE, PROT_WRITE, MAP_SHARED, fd, 0);
   if (addr == MAP_FAILED)
   {
     perror("mmap");
@@ -69,8 +69,7 @@ pid = getpid();
         sem_wait(sem_mem_id);
         cbuffer_message message= consume_message(addr);
         printf("NUEVO MENSAJE:\n PID %d: Random: %d\n", message.producer_id,message.random );
-//         increase_next_message_to_consume(addr);
-//         addr->next_message_to_consume=addr->next_message_to_consume+1;
+        increase_next_message_to_consume(addr);
         sem_post(sem_mem_id);
         sem_post(sem_pro_id); //+1 al semaforo para que consuman
         sleep(1);
