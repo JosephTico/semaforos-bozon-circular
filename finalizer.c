@@ -60,7 +60,20 @@ int main(int argc, char *argv[])
   
   
   
+  sem_wait(sem_mem_id);
+  int consumers_alive=addr->current_consumers;
+  sem_post(sem_mem_id);
   
+  while(consumers_alive>0){
+    sem_wait(sem_pro_id);
+    sem_wait(sem_mem_id);
+    addr->messages[addr->next_message_to_produce] = generate_message(pid, true);
+    increase_next_message_to_produce(addr);
+    addr->total_messages++;
+    consumers_alive=addr->current_consumers;
+    sem_post(sem_mem_id);
+  }
+
   //   place data into memory
   //   memcpy(data, addr, DATA_SIZE);
   // addr->messages[0].random
