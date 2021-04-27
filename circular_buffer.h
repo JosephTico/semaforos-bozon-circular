@@ -7,11 +7,6 @@
 #include <unistd.h>
 #include <fcntl.h>
 
-#define SEMAPHORE_MEMORY_SYNC "cbuffer_memory"
-#define SEMAPHORE_CONSUMERS "cbuffer_consumers"
-#define SEMAPHORE_PRODUCERS "cbuffer_producers"
-#define STORAGE_ID "SHM_TEST"
-
 typedef enum
 {
     KILL_CONSUMER,
