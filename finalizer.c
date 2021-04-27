@@ -57,49 +57,49 @@ int main(int argc, char *argv[])
   if (sem_con_id == SEM_FAILED)
   {
     perror("SEMAPHORE_MEMORY_SYNC  : [sem_open] Failed\n");
-
-    sem_wait(sem_mem_id);
-    addr->kill_producers = true;
-    sem_post(sem_mem_id);
-    sem_post(sem_pro_id);
-
-    sem_wait(sem_mem_id);
-    int consumers_alive = addr->current_consumers;
-    sem_post(sem_mem_id);
-
-    while (consumers_alive > 0)
-    {
-      sem_wait(sem_pro_id);
-      sem_wait(sem_mem_id);
-      addr->messages[addr->next_message_to_produce] = generate_message(pid, true);
-      increase_next_message_to_produce(addr);
-      addr->total_messages++;
-      consumers_alive = addr->current_consumers;
-      sem_post(sem_mem_id);
-    }
-
-    //   place data into memory
-    //   memcpy(data, addr, DATA_SIZE);
-    // addr->messages[0].random
-    //   printf("PID %d: Read from shared memory: \"%s\"\n", pid, data);
-    //   printf("PID %d: Read from shared memory: \"%d\"\n", pid, addr->messages[0].random);
-
-    sem_close(sem_con_id);
-    sem_unlink(SEMAPHORE_CONSUMERS);
-
-    sem_close(sem_mem_id);
-    sem_unlink(SEMAPHORE_MEMORY_SYNC);
-
-    sem_close(sem_pro_id);
-    sem_unlink(SEMAPHORE_PRODUCERS);
-
-    // shm_open cleanup
-    fd = shm_unlink(STORAGE_ID);
-    if (fd == -1)
-    {
-      perror("unlink");
-      return 100;
-    }
-
-    return 0;
   }
+  sem_wait(sem_mem_id);
+  addr->kill_producers = true;
+  sem_post(sem_mem_id);
+  sem_post(sem_pro_id);
+
+  sem_wait(sem_mem_id);
+  int consumers_alive = addr->current_consumers;
+  sem_post(sem_mem_id);
+
+  while (consumers_alive > 0)
+  {
+    sem_wait(sem_pro_id);
+    sem_wait(sem_mem_id);
+    addr->messages[addr->next_message_to_produce] = generate_message(pid, true);
+    increase_next_message_to_produce(addr);
+    addr->total_messages++;
+    consumers_alive = addr->current_consumers;
+    sem_post(sem_mem_id);
+  }
+
+  //   place data into memory
+  //   memcpy(data, addr, DATA_SIZE);
+  // addr->messages[0].random
+  //   printf("PID %d: Read from shared memory: \"%s\"\n", pid, data);
+  //   printf("PID %d: Read from shared memory: \"%d\"\n", pid, addr->messages[0].random);
+
+  sem_close(sem_con_id);
+  sem_unlink(SEMAPHORE_CONSUMERS);
+
+  sem_close(sem_mem_id);
+  sem_unlink(SEMAPHORE_MEMORY_SYNC);
+
+  sem_close(sem_pro_id);
+  sem_unlink(SEMAPHORE_PRODUCERS);
+
+  // shm_open cleanup
+  fd = shm_unlink(STORAGE_ID);
+  if (fd == -1)
+  {
+    perror("unlink");
+    return 100;
+  }
+
+  return 0;
+}
