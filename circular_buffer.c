@@ -90,3 +90,7 @@ cbuffer_message consume_message(circular_buffer *buffer)
     increase_next_message_to_consume(buffer);
     return buffer->messages[buffer->next_message_to_consume];
 };
+
+
+
+

@@ -6,6 +6,8 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <fcntl.h>
+#include <math.h>
+
 
 typedef enum
 {
@@ -45,7 +47,6 @@ cbuffer_message generate_message(pid_t pid, bool kill);
 cbuffer_message consume_message(circular_buffer *buffer);
 void print_buffer(circular_buffer *buffer);
 void print_message(cbuffer_message *message);
-
 
 
 

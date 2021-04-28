@@ -104,7 +104,7 @@ int main(int argc, char *argv[])
     producers_alive = addr->current_consumers;
     sem_post(sem_mem_id);
   }
-  
+  sleep(5);
   
   
   
@@ -121,7 +121,7 @@ int main(int argc, char *argv[])
     addr->messages[addr->next_message_to_produce] = generate_message(pid, true);
     increase_next_message_to_produce(addr);
     addr->total_messages++;
-    consumers_alive = addr->current_consumers;
+    consumers_alive--;
     sem_post(sem_mem_id);
   }
   print_buffer(addr);

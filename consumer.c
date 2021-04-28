@@ -1,4 +1,4 @@
-#include <stdio.h>
+#include<stdio.h>   
 #include <sys/mman.h>
 #include <fcntl.h>
 #include <unistd.h>
@@ -6,6 +6,12 @@
 #include "circular_buffer.h"
 #include <semaphore.h>
 #include <sys/stat.h>
+
+#include <gsl/gsl_rng.h>
+#include <gsl/gsl_randist.h>
+
+#include<time.h>
+
 
 bool running = true;
 pid_t pid;
@@ -22,6 +28,15 @@ void exit_by_finalizer()
 
 int main(int argc, char *argv[])
 {
+  
+  const gsl_rng_type * T;
+  gsl_rng * r;
+  gsl_rng_env_setup();
+  T = gsl_rng_default;
+  r = gsl_rng_alloc (T);
+  gsl_ran_poisson(r,5);
+
+  
   int res;
   int fd;
   circular_buffer *addr;
@@ -131,13 +146,14 @@ int main(int argc, char *argv[])
     }
     else
     {
-      sleep(1);
+      int random_wait = gsl_ran_poisson(r,wait_time);
+//       int random_wait = gsl_ran_exponential(r,2000);
+      printf("RANDOM WAIT:%d\n",random_wait );
+//       sleep(random_wait/1000);
+      usleep(random_wait*1000);
     }
   }
-  /*
-  printf("PID %d: Read from shared memory: \"%s\"\n", pid, (char *)addr);
 
-  printf("PID %d: Read from shared memory block 2: \"%s\"\n", pid, (char *)addr + 50);*/
-
+  gsl_rng_free(r);
   return 0;
 }

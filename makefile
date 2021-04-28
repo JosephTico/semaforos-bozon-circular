@@ -7,7 +7,7 @@ OBJS	= consumer.o  finalizer.o initializer.o producer.o circular_buffer.o
 OUT	= finalizer consumer initializer producer
 CC	 = gcc
 FLAGS	 = -g  -Wall 
-LFLAGS	 = -lm -pthread -lrt
+LFLAGS	 = -lm -pthread -lrt -lgsl -lgslcblas
 
 all: $(OBJS)
 

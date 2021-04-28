@@ -55,7 +55,7 @@ int main(int argc, char *argv[])
   printf("BUFFER SIZE: %i\n", initbuffer.buffer_size);
 
   // inicializar semaforo
-  sem_t *sem_mem_id = sem_open(sem_mem_name, O_CREAT, 0600, 1);
+  sem_t *sem_mem_id = sem_open(sem_mem_name, O_CREAT, 0600, 0);
   if (sem_mem_id == SEM_FAILED)
   {
     perror("SEMAPHORE_MEMORY_SYNC  : [sem_open] Failed\n");
@@ -100,7 +100,7 @@ int main(int argc, char *argv[])
   }
 
   // TODO: Aqui se deben setear e inicializar todo, empezando a partir de addr
-  sem_wait(sem_mem_id);
+//   sem_wait(sem_mem_id);
 
   memcpy(addr, &initbuffer, STORAGE_SIZE);
   initialize_cbuffer(addr);
