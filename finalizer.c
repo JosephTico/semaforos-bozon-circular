@@ -5,6 +5,7 @@
 #include <string.h>
 #include <semaphore.h>
 #include <sys/stat.h>
+#include "colorprint.h"
 
 #include "circular_buffer.h"
 
@@ -18,7 +19,7 @@ int main(int argc, char *argv[])
   // Get argv
   if (argc < 2)
   {
-    printf("error: missing command line arguments\n");
+    printf_color(1, "[red][br][lw][error][/lw][/br]: No se han dado todos los argumentos necesarios.[/red]\n");
     return -1;
   }
   char buffer_name[strlen(argv[1])];
@@ -40,7 +41,7 @@ int main(int argc, char *argv[])
   strcpy(sem_prod_name, sem_prod_name_base);
   strcat(sem_prod_name, buffer_name);
 
-  printf("ARGV BUFFER NAME: %s\n", buffer_name);
+  printf_color(1, "[bb][lw][info][/lw][/bb] Cerrando el buffer %s...\n", buffer_name);
 
   pid = getpid();
 
@@ -48,7 +49,7 @@ int main(int argc, char *argv[])
   fd = shm_open(buffer_name, O_RDWR, S_IRUSR | S_IWUSR);
   if (fd == -1)
   {
-    perror("open");
+    printf_color(1, "[br][lw][error][/lw][/br] [red]El buffer no se ha inicializado.[/red]\n");
     return 10;
   }
 
@@ -61,13 +62,9 @@ int main(int argc, char *argv[])
   addr = mmap(NULL, shared_memory_size, PROT_WRITE, MAP_SHARED, fd, 0);
   if (addr == MAP_FAILED)
   {
-    perror("mmap");
+    printf_color(1, "[br][lw][error][/lw][/br] [red]No se ha podido asignar suficiente memoria al proceso.[/red]\n");
     return 30;
   }
-
-  printf("STORAGE SIZE: %li\n", shared_memory_size);
-  printf("BUFFER SIZE: %i\n", addr->buffer_size);
-
   // Initialize semaphores
   sem_t *sem_mem_id = sem_open(sem_mem_name, O_CREAT, 0600, 1);
   if (sem_mem_id == SEM_FAILED)

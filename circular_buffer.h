@@ -8,7 +8,6 @@
 #include <fcntl.h>
 #include <math.h>
 
-
 typedef enum
 {
     KILL_CONSUMER,

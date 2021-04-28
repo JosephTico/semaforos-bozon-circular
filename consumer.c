@@ -1,50 +1,57 @@
-#include<stdio.h>   
+#include <stdio.h>
 #include <sys/mman.h>
 #include <fcntl.h>
 #include <unistd.h>
 #include <string.h>
-#include "circular_buffer.h"
 #include <semaphore.h>
+#include <signal.h>
 #include <sys/stat.h>
-
+#include <time.h>
 #include <gsl/gsl_rng.h>
 #include <gsl/gsl_randist.h>
-
-#include<time.h>
-
+#include "circular_buffer.h"
+#include "colorprint.h"
 
 bool running = true;
 pid_t pid;
+circular_buffer *addr;
 
 void exit_by_id()
 {
-  printf("Consumidor finalizado por id:\n PID %d: \n", pid);
+  printf_color(1, "[bb][lw][info][/lw][/bb] Consumidor finalizado por ID (aleatorio). PID: %d.\n", pid);
 }
 
 void exit_by_finalizer()
 {
-  printf("Consumidor finalizado por finalizador:\n PID %d: \n", pid);
+  printf_color(1, "[bb][lw][info][/lw][/bb] Consumidor cerrado por finalizador. PID: %d.\n", pid);
+}
+
+void intHandler(int dummy)
+{
+  printf("Finalización forzada.\n");
+  addr->current_consumers--;
+  exit(0);
 }
 
 int main(int argc, char *argv[])
 {
-  
-  const gsl_rng_type * T;
-  gsl_rng * r;
+  signal(SIGINT, intHandler);
+
+  const gsl_rng_type *T;
+  gsl_rng *r;
   gsl_rng_env_setup();
   T = gsl_rng_default;
-  r = gsl_rng_alloc (T);
-  gsl_ran_poisson(r,5);
+  r = gsl_rng_alloc(T);
+  gsl_ran_poisson(r, 5);
 
-  
-  int res;
   int fd;
-  circular_buffer *addr;
+  time_t rawtime;
+  struct tm *timeinfo;
 
   // Get argv
   if (argc < 3)
   {
-    printf("error: missing command line arguments\n");
+    printf_color(1, "[red][br][lw][error][/lw][/br] No se han dado todos los argumentos necesarios.[/red]\n");
     return -1;
   }
   char buffer_name[strlen(argv[1])];
@@ -67,18 +74,17 @@ int main(int argc, char *argv[])
   strcpy(sem_prod_name, sem_prod_name_base);
   strcat(sem_prod_name, buffer_name);
 
-  printf("ARGV BUFFER NAME: %s\n", buffer_name);
-  printf("ARGV WAIT TIME: %i\n", wait_time);
-
   pid = getpid();
 
-  printf("NEW CONSUMER:\n PID %d\n", pid);
+  printf_color(1, "[bb][lw][info][/lw][/bb] Inicializando consumidor. PID: %d.\n", pid);
+  printf_color(1, "[bb][lw][info][/lw][/bb] Nombre de buffer dado: %s.\n", buffer_name);
+  printf_color(1, "[bb][lw][info][/lw][/bb] Tiempo de espera promedio: %i ms.\n\n", wait_time);
 
   // get shared memory file descriptor (NOT a file)
   fd = shm_open(buffer_name, O_RDWR, S_IRUSR | S_IWUSR);
   if (fd == -1)
   {
-    perror("open");
+    printf_color(1, "[br][lw][error][/lw][/br] [red]El buffer no se ha inicializado.[/red]\n");
     return 10;
   }
 
@@ -91,12 +97,9 @@ int main(int argc, char *argv[])
   addr = mmap(NULL, shared_memory_size, PROT_WRITE, MAP_SHARED, fd, 0);
   if (addr == MAP_FAILED)
   {
-    perror("mmap");
+    printf_color(1, "[br][lw][error][/lw][/br] [red]No se ha podido asignar suficiente memoria al proceso.[/red]\n");
     return 30;
   }
-
-  printf("STORAGE SIZE: %li\n", shared_memory_size);
-  printf("BUFFER SIZE: %i\n", addr->buffer_size);
 
   // Initialize semaphores
   sem_t *sem_mem_id = sem_open(sem_mem_name, O_CREAT, 0600, 1);
@@ -122,12 +125,32 @@ int main(int argc, char *argv[])
   addr->total_consumers++;
   sem_post(sem_mem_id);
 
+  int current_slot = 0;
+
   while (running)
   {
     sem_wait(sem_con_id);
     sem_wait(sem_mem_id);
+
+    current_slot = addr->next_message_to_consume;
+
     cbuffer_message message = consume_message(addr);
-    printf("NUEVO MENSAJE:\n PID %d: Random: %d\n", message.producer_id, message.random);
+
+    printf_color(1, "\n[bb]--------------------------------------------[/bb]\n");
+    printf_color(1, "[cyan]Consumidor PID:[/cyan] [yellow]%i[/yellow]\n", pid);
+    printf_color(1, "[cyan]Recibido mensaje del productor PID:[/cyan] [yellow]%i[/yellow]\n", message.producer_id);
+    printf_color(1, "[cyan]Leído del slot [yellow]%i[/yellow] del buffer[/cyan]\n", current_slot);
+    printf_color(1, "[cyan]Contenido del mensaje:[/cyan] [yellow]%i[/yellow]\n", message.content);
+    printf_color(1, "[cyan]Número mágico:[/cyan] [yellow]%i[/yellow]\n", message.random);
+
+    time(&rawtime);
+    timeinfo = localtime(&rawtime);
+    printf_color(1, "[cyan]Hora actual:[/cyan] [yellow]%s[/yellow]", asctime(timeinfo));
+    printf_color(1, "[cyan]Consumidores conectados:[/cyan] [yellow]%i[/yellow]\n", addr->current_consumers);
+    printf_color(1, "[cyan]Productores conectados:[/cyan] [yellow]%i[/yellow]\n", addr->current_producers);
+
+    printf_color(1, "[bb]--------------------------------------------[/bb]\n\n");
+
     sem_post(sem_mem_id);
     sem_post(sem_pro_id); //+1 al semaforo para que consuman
 
@@ -146,11 +169,11 @@ int main(int argc, char *argv[])
     }
     else
     {
-      int random_wait = gsl_ran_poisson(r,wait_time);
-//       int random_wait = gsl_ran_exponential(r,2000);
-      printf("RANDOM WAIT:%d\n",random_wait );
-//       sleep(random_wait/1000);
-      usleep(random_wait*1000);
+      int random_wait = gsl_ran_poisson(r, wait_time);
+      //       int random_wait = gsl_ran_exponential(r,2000);
+      printf_color(1, "[green]*********** Esperando %d ms ***********[/green]\n", random_wait);
+      //       sleep(random_wait/1000);
+      usleep(random_wait * 1000);
     }
   }
 

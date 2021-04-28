@@ -6,6 +6,7 @@
 #include <semaphore.h>
 #include <sys/stat.h>
 #include "circular_buffer.h"
+#include "colorprint.h"
 
 int main(int argc, char *argv[])
 {
@@ -19,7 +20,7 @@ int main(int argc, char *argv[])
   // Get argv
   if (argc < 3)
   {
-    printf("error: missing command line arguments\n");
+    printf_color(1, "[red][br][lw][error][/lw][/br] No se han dado todos los argumentos necesarios.[/red]\n");
     return -1;
   }
   char buffer_name[strlen(argv[1])];
@@ -42,8 +43,9 @@ int main(int argc, char *argv[])
   strcpy(sem_prod_name, sem_prod_name_base);
   strcat(sem_prod_name, buffer_name);
 
-  printf("ARGV BUFFER NAME: %s\n", buffer_name);
-  printf("ARGV BUFFER SIZE: %i\n", buffer_size);
+  printf_color(1, "[bb][lw][info][/lw][/bb] Inicializador de buffer.\n");
+  printf_color(1, "[bb][lw][info][/lw][/bb] Nombre de buffer dado: %s.\n", buffer_name);
+  printf_color(1, "[bb][lw][info][/lw][/bb] Tamaño de buffer solicitado: %i ms.\n", buffer_size);
 
   // Initialize the circular buffer
   circular_buffer initbuffer;
@@ -51,8 +53,7 @@ int main(int argc, char *argv[])
   size_t messages_size = sizeof(cbuffer_message) * buffer_size;
   size_t const STORAGE_SIZE = sizeof(initbuffer) + messages_size;
 
-  printf("STORAGE SIZE: %li\n", STORAGE_SIZE);
-  printf("BUFFER SIZE: %i\n", initbuffer.buffer_size);
+  printf_color(1, "[bb][lw][info][/lw][/bb] Memoria asignada al buffer: %li B.\n\n", STORAGE_SIZE);
 
   // inicializar semaforo
   sem_t *sem_mem_id = sem_open(sem_mem_name, O_CREAT, 0600, 0);
@@ -79,6 +80,7 @@ int main(int argc, char *argv[])
   fd = shm_open(buffer_name, O_RDWR | O_CREAT, S_IRUSR | S_IWUSR);
   if (fd == -1)
   {
+    printf_color(1, "[br][lw][error][/lw][/br] [red]No se pudo crear el archivo de memoria compartida.[/red]\n");
     perror("open");
     return 10;
   }
@@ -87,7 +89,7 @@ int main(int argc, char *argv[])
   res = ftruncate(fd, STORAGE_SIZE);
   if (res == -1)
   {
-    perror("ftruncate");
+    printf_color(1, "[br][lw][error][/lw][/br] [red]No hay suficiente espacio libre en el disco.[/red]\n");
     return 20;
   }
 
@@ -95,16 +97,15 @@ int main(int argc, char *argv[])
   addr = mmap(NULL, STORAGE_SIZE, PROT_WRITE, MAP_SHARED, fd, 0);
   if (addr == MAP_FAILED)
   {
-    perror("mmap");
+    printf_color(1, "[br][lw][error][/lw][/br] [red]No se ha podido asignar suficiente memoria al proceso.[/red]\n");
     return 30;
   }
-
-  // TODO: Aqui se deben setear e inicializar todo, empezando a partir de addr
-//   sem_wait(sem_mem_id);
 
   memcpy(addr, &initbuffer, STORAGE_SIZE);
   initialize_cbuffer(addr);
   sem_post(sem_mem_id);
+
+  printf_color(1, "[bb][lw][info][/lw][/bb] Buffer creado correctamente");
 
   // mmap cleanup
   res = munmap(addr, STORAGE_SIZE);

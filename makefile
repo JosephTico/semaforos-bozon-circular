@@ -1,4 +1,4 @@
-OBJS	= consumer.o  finalizer.o initializer.o producer.o circular_buffer.o
+OBJS	= consumer.o  finalizer.o initializer.o producer.o circular_buffer.o colorprint.o
 # SOURCE	= consumer.c  finalizer.c initializer.c producer.c
 
 # SOURCE	= initializer.c circular_buffer.o
@@ -11,10 +11,10 @@ LFLAGS	 = -lm -pthread -lrt -lgsl -lgslcblas
 
 all: $(OBJS)
 
-	$(CC) $(FLAGS)  finalizer.o circular_buffer.o  -o finalizer $(LFLAGS)
-	$(CC) $(FLAGS)  initializer.o circular_buffer.o  -o initializer $(LFLAGS)
-	$(CC) $(FLAGS)  producer.o circular_buffer.o  -o producer $(LFLAGS)
-	$(CC) $(FLAGS)  consumer.o circular_buffer.o  -o consumer $(LFLAGS)
+	$(CC) $(FLAGS)  finalizer.o circular_buffer.o colorprint.o  -o finalizer $(LFLAGS)
+	$(CC) $(FLAGS)  initializer.o circular_buffer.o colorprint.o  -o initializer $(LFLAGS)
+	$(CC) $(FLAGS)  producer.o circular_buffer.o colorprint.o  -o producer $(LFLAGS)
+	$(CC) $(FLAGS)  consumer.o circular_buffer.o colorprint.o  -o consumer $(LFLAGS)
 	
 clean:
 	rm -f $(OBJS) $(OUT)
