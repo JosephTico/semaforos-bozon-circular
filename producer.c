@@ -15,16 +15,28 @@
 pid_t pid;
 bool running = true;
 circular_buffer *addr;
+double total_wait_time = 0.0;
+double total_blocked_time = 0.0;
+int total_produced_messages = 0;
+
+void print_stats()
+{
+    printf_color(1, "[cyan]Tiempo de espera total:[/cyan] [yellow]%f s[/yellow]\n", total_wait_time);
+    printf_color(1, "[cyan]Tiempo bloqueado total:[/cyan] [yellow]%f s[/yellow]\n", total_blocked_time);
+    printf_color(1, "[cyan]Mensajes producidos:[/cyan] [yellow]%i[/yellow]\n", total_produced_messages);
+}
 
 void exit_by_finalizer()
 {
     printf_color(1, "[bb][lw][info][/lw][/bb] Productor cerrado por finalizador. PID: %d.\n", pid);
+    print_stats();
 }
 
 void intHandler(int dummy)
 {
     printf_color(1, "[bb][lw][info][/lw][/bb] Finalización forzada.\n");
     addr->current_producers--;
+    print_stats();
     exit(0);
 }
 
@@ -69,11 +81,11 @@ int main(int argc, char *argv[])
     strcpy(sem_prod_name, sem_prod_name_base);
     strcat(sem_prod_name, buffer_name);
 
+    pid = getpid();
+
     printf_color(1, "[bb][lw][info][/lw][/bb] Inicializando productor. PID: %d.\n", pid);
     printf_color(1, "[bb][lw][info][/lw][/bb] Nombre de buffer dado: %s.\n", buffer_name);
     printf_color(1, "[bb][lw][info][/lw][/bb] Tiempo de espera promedio: %i ms.\n\n", wait_time);
-
-    pid = getpid();
 
     // get shared memory file descriptor (NOT a file)
     fd = shm_open(buffer_name, O_RDWR, S_IRUSR | S_IWUSR);
@@ -121,15 +133,25 @@ int main(int argc, char *argv[])
     sem_post(sem_mem_id);
 
     int i = 0;
+    long long t = 0;
+
     while (running)
     {
         int random_wait = gsl_ran_exponential(r, wait_time);
 
         printf_color(1, "[green]*********** Esperando %d ms ***********[/green]\n", random_wait);
+        total_wait_time = total_wait_time + random_wait / 1000.0;
         usleep(random_wait * 1000);
+
+        t = current_timestamp();
 
         sem_wait(sem_pro_id);
         sem_wait(sem_mem_id);
+
+        // Add to total blocked time
+        t = current_timestamp() - t;
+        total_blocked_time = total_blocked_time + t / 1000.0;
+
         if (addr->kill_producers)
         {
             running = false;
@@ -141,6 +163,7 @@ int main(int argc, char *argv[])
         {
             addr->messages[addr->next_message_to_produce] = generate_message(pid, false);
             addr->total_messages++;
+            total_produced_messages++;
             printf_color(1, "\n[bb]--------------------------------------------[/bb]\n");
             printf_color(1, "[cyan]Productor PID:[/cyan] [yellow]%i[/yellow]\n", pid);
             printf_color(1, "[cyan]Producido el mensaje [yellow]#%i[/yellow] de la sesión[/cyan]\n", addr->total_messages);

@@ -47,7 +47,6 @@ cbuffer_message consume_message(circular_buffer *buffer);
 void print_buffer(circular_buffer *buffer);
 void print_message(cbuffer_message *message);
 
-
-
+long long current_timestamp();
 
 #endif
