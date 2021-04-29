@@ -185,10 +185,11 @@ int main(int argc, char *argv[])
 
             printf_color(1, "[bb]--------------------------------------------[/bb]\n\n");
             increase_next_message_to_produce(addr);
+            sem_post(sem_con_id);//+1 al semaforo para que consuman
         }
 
         sem_post(sem_mem_id);
-        sem_post(sem_con_id); //+1 al semaforo para que consuman
+         
     }
 
     return 0;

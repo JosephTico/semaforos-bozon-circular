@@ -91,15 +91,16 @@ int main(int argc, char *argv[])
   
   
   sem_wait(sem_mem_id);
-  int producers_alive = addr->current_consumers;
+  int producers_alive = addr->current_producers;
   sem_post(sem_mem_id);
 
 
   while (producers_alive > 0)
   {
     sem_wait(sem_mem_id);
-    producers_alive = addr->current_consumers;
+    producers_alive = addr->current_producers;
     sem_post(sem_mem_id);
+    sleep(1);
   }
   printf("Productores finalizados\n");
 //   sleep(5);
@@ -119,11 +120,26 @@ int main(int argc, char *argv[])
     addr->messages[addr->next_message_to_produce] = generate_message(pid, true);
     increase_next_message_to_produce(addr);
     addr->total_messages++;
-    consumers_alive--;
+//     consumers_alive--;
+    consumers_alive = addr->current_consumers;
     sem_post(sem_mem_id);
     sem_post(sem_con_id);
 
   }
+  
+//   sem_wait(sem_mem_id);
+//   consumers_alive = addr->current_consumers;
+//   sem_post(sem_mem_id);
+// 
+//   while (consumers_alive > 0)
+//   {
+//     sem_wait(sem_mem_id);
+//     consumers_alive = addr->current_consumers;
+//     sem_post(sem_mem_id);
+//     sleep(1);
+//   }
+//   
+  
   printf("Consumidores finalizados\n");
 
   print_buffer(addr);
