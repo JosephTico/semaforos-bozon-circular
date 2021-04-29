@@ -101,7 +101,8 @@ int main(int argc, char *argv[])
     producers_alive = addr->current_consumers;
     sem_post(sem_mem_id);
   }
-  sleep(5);
+  printf("Productores finalizados\n");
+//   sleep(5);
   
   
   
@@ -120,7 +121,11 @@ int main(int argc, char *argv[])
     addr->total_messages++;
     consumers_alive--;
     sem_post(sem_mem_id);
+    sem_post(sem_con_id);
+
   }
+  printf("Consumidores finalizados\n");
+
   print_buffer(addr);
 
   //   place data into memory

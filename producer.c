@@ -19,6 +19,11 @@ double total_wait_time = 0.0;
 double total_blocked_time = 0.0;
 int total_produced_messages = 0;
 
+sem_t *sem_mem_id;
+sem_t *sem_pro_id;
+sem_t *sem_con_id;
+
+
 void print_stats()
 {
     printf_color(1, "[cyan]Tiempo de espera total:[/cyan] [yellow]%f s[/yellow]\n", total_wait_time);
@@ -35,7 +40,9 @@ void exit_by_finalizer()
 void intHandler(int dummy)
 {
     printf_color(1, "[bb][lw][info][/lw][/bb] Finalización forzada.\n");
+    sem_wait(sem_mem_id);
     addr->current_producers--;
+    sem_post(sem_mem_id);
     print_stats();
     exit(0);
 }
@@ -109,19 +116,19 @@ int main(int argc, char *argv[])
     }
 
     // Initialize semaphores
-    sem_t *sem_mem_id = sem_open(sem_mem_name, O_CREAT, 0600, 1);
+    sem_mem_id = sem_open(sem_mem_name, O_CREAT, 0600, 1);
     if (sem_mem_id == SEM_FAILED)
     {
         perror("SEMAPHORE_MEMORY_SYNC  : [sem_open] Failed\n");
     }
 
-    sem_t *sem_pro_id = sem_open(sem_prod_name, O_CREAT, 0600, addr->buffer_size);
+    sem_pro_id = sem_open(sem_prod_name, O_CREAT, 0600, addr->buffer_size);
     if (sem_pro_id == SEM_FAILED)
     {
         perror("SEMAPHORE_MEMORY_SYNC  : [sem_open] Failed\n");
     }
 
-    sem_t *sem_con_id = sem_open(sem_con_name, O_CREAT, 0600, 0);
+    sem_con_id = sem_open(sem_con_name, O_CREAT, 0600, 0);
     if (sem_con_id == SEM_FAILED)
     {
         perror("SEMAPHORE_MEMORY_SYNC  : [sem_open] Failed\n");

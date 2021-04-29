@@ -20,6 +20,12 @@ double total_wait_time = 0.0;
 double total_blocked_time = 0.0;
 int total_consumed_messages = 0;
 
+sem_t *sem_mem_id;
+sem_t *sem_pro_id;
+sem_t *sem_con_id;
+
+
+
 void print_stats()
 {
   struct tms cpu_times;
@@ -120,19 +126,19 @@ int main(int argc, char *argv[])
   }
 
   // Initialize semaphores
-  sem_t *sem_mem_id = sem_open(sem_mem_name, O_CREAT, 0600, 1);
+  sem_mem_id = sem_open(sem_mem_name, O_CREAT, 0600, 1);
   if (sem_mem_id == SEM_FAILED)
   {
     perror("SEMAPHORE_MEMORY_SYNC  : [sem_open] Failed\n");
   }
 
-  sem_t *sem_pro_id = sem_open(sem_prod_name, O_CREAT, 0600, addr->buffer_size);
+  sem_pro_id = sem_open(sem_prod_name, O_CREAT, 0600, addr->buffer_size);
   if (sem_pro_id == SEM_FAILED)
   {
     perror("SEMAPHORE_MEMORY_SYNC  : [sem_open] Failed\n");
   }
 
-  sem_t *sem_con_id = sem_open(sem_con_name, O_CREAT, 0600, 0);
+  sem_con_id = sem_open(sem_con_name, O_CREAT, 0600, 0);
   if (sem_con_id == SEM_FAILED)
   {
     perror("SEMAPHORE_MEMORY_SYNC  : [sem_open] Failed\n");
@@ -183,14 +189,18 @@ int main(int argc, char *argv[])
     if (message.type == KILL_CONSUMER)
     {
       running = false;
+      sem_wait(sem_con_id);
       addr->current_consumers--;
+      sem_post(sem_mem_id);
       exit_by_finalizer();
     }
     else if (message.random == pid % 6)
     {
       running = false;
+      sem_wait(sem_con_id);
       addr->current_consumers--;
       addr->consumers_killed_by_id++;
+      sem_post(sem_mem_id);
       exit_by_id();
     }
     else
